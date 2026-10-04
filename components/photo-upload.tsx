@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { compressImage } from "@/lib/compress-image";
 
 interface PhotoUploadProps {
   label: string;
@@ -13,21 +14,37 @@ interface PhotoUploadProps {
 
 const ACCEPT = "image/jpeg,image/png,image/webp";
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 /** Drag-and-drop photo field with preview. Optional — analysis works without photos. */
 export function PhotoUpload({ label, name, onFileChange, hint }: PhotoUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [fileSize, setFileSize] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const clear = useCallback(() => {
+    setPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    setFileName(null);
+    setFileSize(null);
+    onFileChange(null);
+  }, [onFileChange]);
+
   const pick = useCallback(
-    (file: File | null) => {
+    async (file: File | null) => {
       setError(null);
       if (!file) {
-        setPreview(null);
-        setFileName(null);
-        onFileChange(null);
+        clear();
         return;
       }
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -38,11 +55,23 @@ export function PhotoUpload({ label, name, onFileChange, hint }: PhotoUploadProp
         setError("Image must be 10 MB or smaller.");
         return;
       }
-      setPreview(URL.createObjectURL(file));
-      setFileName(file.name);
-      onFileChange(file);
+      // Downscale in the browser: Vercel rejects request bodies over ~4.5 MB
+      // (HTTP 413) before our code runs, and re-encoding strips EXIF data.
+      setCompressing(true);
+      try {
+        const compressed = await compressImage(file);
+        setPreview((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return URL.createObjectURL(compressed);
+        });
+        setFileName(compressed.name);
+        setFileSize(formatBytes(compressed.size));
+        onFileChange(compressed);
+      } finally {
+        setCompressing(false);
+      }
     },
-    [onFileChange],
+    [clear, onFileChange],
   );
 
   return (
@@ -80,7 +109,15 @@ export function PhotoUpload({ label, name, onFileChange, hint }: PhotoUploadProp
           className="hidden"
           onChange={(e) => pick(e.target.files?.[0] ?? null)}
         />
-        {preview ? (
+        {compressing ? (
+          <>
+            <span className="text-3xl" aria-hidden="true">⏳</span>
+            <p className="text-sm font-medium">Compressing photo…</p>
+            <p className="text-xs text-muted-foreground">
+              Downscaling for upload &amp; stripping metadata
+            </p>
+          </>
+        ) : preview ? (
           <>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -88,12 +125,15 @@ export function PhotoUpload({ label, name, onFileChange, hint }: PhotoUploadProp
               alt={`Photo preview for ${name}`}
               className="h-32 w-32 rounded-full object-cover ring-2 ring-primary/30"
             />
-            <p className="max-w-full truncate text-xs text-muted-foreground">{fileName}</p>
+            <p className="max-w-full truncate text-xs text-muted-foreground">
+              {fileName}
+              {fileSize ? ` · ${fileSize}` : ""}
+            </p>
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                pick(null);
+                clear();
                 if (inputRef.current) inputRef.current.value = "";
               }}
               className="text-xs font-medium text-destructive underline"
@@ -106,7 +146,8 @@ export function PhotoUpload({ label, name, onFileChange, hint }: PhotoUploadProp
             <span className="text-3xl" aria-hidden="true">📷</span>
             <p className="text-sm font-medium">Drop a photo here, or click to choose</p>
             <p className="text-xs text-muted-foreground">
-              JPG / PNG / WebP · max 10 MB · optional{hint ? ` · ${hint}` : ""}
+              JPG / PNG / WebP · max 10 MB · auto-compressed on upload · optional
+              {hint ? ` · ${hint}` : ""}
             </p>
           </>
         )}

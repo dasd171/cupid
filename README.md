@@ -167,8 +167,10 @@ tests/          vitest suites
   10 minutes and never written to disk.**
 - Uploaded photos and chat files live in a per-request temp directory that is
   deleted in a `finally` block when the analysis finishes — success or failure.
-- Photos are resized and stripped of EXIF metadata before being sent to the
-  AI provider.
+- Photos are downscaled in the browser before upload (max 1280px, JPEG)
+  and stripped of EXIF metadata before being sent to the AI provider.
+  This also keeps uploads under the ~4.5 MB request-body cap enforced by
+  serverless hosts like Vercel (HTTP 413 otherwise).
 - Logs contain only `Analysis started` / `Analysis completed` /
   `Analysis failed`. Chat content, file paths, and API keys are never logged.
 - API keys exist only as server-side environment variables.

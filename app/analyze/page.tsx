@@ -15,6 +15,22 @@ import { cn } from "@/lib/utils";
 
 const STEP_TITLES = ["Person A", "Person B", "Conversation"];
 
+/** Turn raw HTTP/API failures into messages a human can act on. */
+function toFriendlyError(res: Response, data: { error?: string } | null): string {
+  if (res.status === 413) {
+    return (
+      "Upload rejected: the request was too large for the server. " +
+      "Photos are auto-compressed before upload, but if this keeps happening, " +
+      "try smaller photos — or skip them entirely, analysis works fine without photos."
+    );
+  }
+  if (res.status === 429) {
+    return "Too many requests — please wait a minute and try again.";
+  }
+  if (data?.error) return data.error;
+  return `Analysis failed (HTTP ${res.status}). Please try again.`;
+}
+
 export default function AnalyzePage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
@@ -45,7 +61,7 @@ export default function AnalyzePage() {
       const res = await fetch("/api/analyze", { method: "POST", body: fd });
       const data = (await res.json().catch(() => null)) as { id?: string; error?: string } | null;
       if (!res.ok || !data?.id) {
-        throw new Error(data?.error ?? `Analysis failed (HTTP ${res.status}).`);
+        throw new Error(toFriendlyError(res, data));
       }
       router.push(`/result/${data.id}`);
     } catch (err) {
