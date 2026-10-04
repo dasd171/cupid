@@ -1,0 +1,36 @@
+Return your analysis as ONE valid JSON object with EXACTLY this shape:
+
+{
+  "overallScore": 78,
+  "direction": "potential_romantic",
+  "confidence": "medium",
+  "summary": "2-4 sentences summarizing what the conversation shows.",
+  "scores": {
+    "communication": 85,
+    "emotionalEngagement": 80,
+    "mutualInterest": 78,
+    "consistency": 72,
+    "conflictResolution": 65,
+    "futureOrientation": 70
+  },
+  "positiveSignals": ["short observed signal", "..."],
+  "riskSignals": ["short observed risk", "..."],
+  "evidence": [
+    { "type": "mutual_interest",
+      "claim": "optional short claim",
+      "description": "observable fact supporting it" }
+  ],
+  "recommendations": ["concrete, kind, actionable suggestion", "..."]
+}
+
+Field rules:
+- overallScore: integer 0-100. An AI-generated heuristic, NOT a probability.
+- direction: one of "romantic" | "potential_romantic" | "friendship" | "unclear" | "cooling_down".
+- confidence: "low" | "medium" | "high".
+- scores: integers 0-100. Omit a dimension ONLY if you truly cannot assess it.
+- positiveSignals / riskSignals: observable patterns, max 8 items each.
+- evidence: bind each major judgment to observable facts. If evidence is
+  insufficient, include { "type": "insufficient_evidence", "description": "…" }.
+- recommendations: practical and respectful, never manipulative.
+
+Output JSON only. No markdown fences. No extra text.

@@ -1,0 +1,44 @@
+Analyze the communication patterns between the two people.
+
+COMMUNICATION — consider:
+- Reply length balance: does one person consistently write much more or less?
+- Reply speed (when timestamps exist): prompt replies vs. long silences.
+- Initiation ratio: who starts conversations more often?
+- Question ratio: who asks follow-up questions, keeping dialogue alive?
+- Dialogue continuation: do answers invite further exchange or shut it down?
+
+EMOTIONAL ENGAGEMENT — consider:
+- Emotional expression: sharing feelings, not just facts.
+- Care and empathy: noticing the other person's mood or situation.
+- Emotional support: comforting, encouraging, validating.
+- Affectionate / flirtatious signals: warmth, teasing, compliments, pet names.
+  Mark these as observed signals only — never as proof of romantic intent.
+
+MUTUAL INTEREST — consider:
+- Both-sided initiative vs. one-sided effort.
+- Interest in each other's daily life, work, friends, hobbies.
+- Actively creating opportunities to talk or meet.
+- Remembering details the other person shared earlier.
+
+RELATIONSHIP DIRECTION — choose exactly one:
+- "romantic": clear mutual romantic signals and intent.
+- "potential_romantic": genuine interest and warmth, but ambiguous or
+  asymmetric; real potential with visible risks.
+- "friendship": warm and engaged, but the tone and topics read platonic.
+- "unclear": not enough evidence, or signals point in conflicting directions.
+- "cooling_down": declining frequency, shorter replies, emotional withdrawal.
+
+CONFLICT PATTERN — only if the conversation contains disagreements:
+- Frequency of conflicts, avoidance, apologies, compromises,
+  aggressive language, repair attempts after conflict.
+- If no conflict is visible, score conflictResolution neutrally (~50)
+  and say evidence was insufficient.
+
+FUTURE ORIENTATION — look for:
+- Future plans, trips together, meeting up, shared activities,
+  long-term mentions ("next year", "someday we should…").
+- Absence of any future talk is itself a (weak) signal; say so.
+
+For every important judgment, attach evidence referencing observable
+facts (e.g. "A initiates approximately 62% of conversations").
+If the evidence does not support a judgment, mark confidence "low".

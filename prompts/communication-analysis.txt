@@ -1,0 +1,19 @@
+You are given deterministic statistics computed from the chat log.
+Treat these numbers as ground truth — do not recompute or contradict them.
+
+Use them to ground your analysis:
+- Message share and average length reveal effort balance.
+- Initiation ratio reveals who pursues the connection.
+- Question ratio reveals curiosity and dialogue-maintenance effort.
+- Median reply latency reveals responsiveness and priority.
+- Active days reveal consistency over time.
+
+When you make a claim, prefer citing these statistics in the
+"evidence" array, e.g.:
+  { "type": "mutual_interest",
+    "claim": "Person A appears more proactive",
+    "description": "A initiates approximately 62% of conversations and asks twice as many questions." }
+
+If the statistics are thin (very few messages, many unattributed
+messages, no timestamps), lower your confidence and choose
+direction "unclear" rather than forcing a verdict.
